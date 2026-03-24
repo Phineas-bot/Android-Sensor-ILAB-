@@ -1,0 +1,75 @@
+com.sensorscope.app-ui-release-0 C:\Users\USER PRO\.gradle\caches\transforms-4\0530cccfc9ee012584c799ab294637c9\transformed\ui-release\res
+com.sensorscope.app-core-runtime-2.2.0-1 C:\Users\USER PRO\.gradle\caches\transforms-4\0a20b29fbfc2ce6ce8172d3cbbd02333\transformed\core-runtime-2.2.0\res
+com.sensorscope.app-ui-util-release-2 C:\Users\USER PRO\.gradle\caches\transforms-4\110f99e614c28b575426d260ec392f11\transformed\ui-util-release\res
+com.sensorscope.app-graphics-path-1.0.1-3 C:\Users\USER PRO\.gradle\caches\transforms-4\131f4c81ab935093c6ad5cf3de6954b6\transformed\graphics-path-1.0.1\res
+com.sensorscope.app-drawerlayout-1.1.1-4 C:\Users\USER PRO\.gradle\caches\transforms-4\15d6ae3f059ea3764aa6c62e1fe3945d\transformed\drawerlayout-1.1.1\res
+com.sensorscope.app-fragment-1.5.1-5 C:\Users\USER PRO\.gradle\caches\transforms-4\1729bbdf300dd50f74e4ce826a3be374\transformed\fragment-1.5.1\res
+com.sensorscope.app-navigation-runtime-ktx-2.8.0-6 C:\Users\USER PRO\.gradle\caches\transforms-4\1a6dbb5d40643a08bdc84f003fd31bcf\transformed\navigation-runtime-ktx-2.8.0\res
+com.sensorscope.app-lifecycle-livedata-2.8.5-7 C:\Users\USER PRO\.gradle\caches\transforms-4\1a8d3f9e2438532b06e79de7599ae825\transformed\lifecycle-livedata-2.8.5\res
+com.sensorscope.app-room-ktx-2.6.1-8 C:\Users\USER PRO\.gradle\caches\transforms-4\1fc99db6517c18876e12e72e8758d8fd\transformed\room-ktx-2.6.1\res
+com.sensorscope.app-lifecycle-runtime-compose-release-9 C:\Users\USER PRO\.gradle\caches\transforms-4\201be81484001ac12abdf5534929de24\transformed\lifecycle-runtime-compose-release\res
+com.sensorscope.app-navigation-common-ktx-2.8.0-10 C:\Users\USER PRO\.gradle\caches\transforms-4\24cd0edce700f8aafe6750221f1ec216\transformed\navigation-common-ktx-2.8.0\res
+com.sensorscope.app-recyclerview-1.1.0-11 C:\Users\USER PRO\.gradle\caches\transforms-4\270a78f95749ff1689d955f55df39397\transformed\recyclerview-1.1.0\res
+com.sensorscope.app-ui-text-release-12 C:\Users\USER PRO\.gradle\caches\transforms-4\28f8581dc13edd3a557aed06879df057\transformed\ui-text-release\res
+com.sensorscope.app-foundation-release-13 C:\Users\USER PRO\.gradle\caches\transforms-4\2dda9fd7fc917f80fd1cb47bb08e59e4\transformed\foundation-release\res
+com.sensorscope.app-runtime-saveable-release-14 C:\Users\USER PRO\.gradle\caches\transforms-4\2e6425a6f6f0b9e8fc603b9d216d7085\transformed\runtime-saveable-release\res
+com.sensorscope.app-lifecycle-livedata-core-ktx-2.8.5-15 C:\Users\USER PRO\.gradle\caches\transforms-4\31f305316b5636bcff0b36f57b3f9cf1\transformed\lifecycle-livedata-core-ktx-2.8.5\res
+com.sensorscope.app-lifecycle-process-2.8.5-16 C:\Users\USER PRO\.gradle\caches\transforms-4\36112f9ca8b07db3949dc875f279df87\transformed\lifecycle-process-2.8.5\res
+com.sensorscope.app-savedstate-ktx-1.2.1-17 C:\Users\USER PRO\.gradle\caches\transforms-4\41c9f7d7909a723332737cfe63da5448\transformed\savedstate-ktx-1.2.1\res
+com.sensorscope.app-transition-1.5.0-18 C:\Users\USER PRO\.gradle\caches\transforms-4\4c3d69273c7591f0e421d6ad2ca79a0a\transformed\transition-1.5.0\res
+com.sensorscope.app-viewpager2-1.0.0-19 C:\Users\USER PRO\.gradle\caches\transforms-4\4d5345ec205bba845edc2db2bee16d74\transformed\viewpager2-1.0.0\res
+com.sensorscope.app-ui-geometry-release-20 C:\Users\USER PRO\.gradle\caches\transforms-4\4fc41fb010fb4e64cf7c2c63a8ce508c\transformed\ui-geometry-release\res
+com.sensorscope.app-ui-tooling-release-21 C:\Users\USER PRO\.gradle\caches\transforms-4\502b5326ef2beff44dcf423c901a863f\transformed\ui-tooling-release\res
+com.sensorscope.app-activity-compose-1.9.2-22 C:\Users\USER PRO\.gradle\caches\transforms-4\5453160c26b0cfadaaa250b1b75d5e7b\transformed\activity-compose-1.9.2\res
+com.sensorscope.app-ui-tooling-data-release-23 C:\Users\USER PRO\.gradle\caches\transforms-4\58f7d63a6f8b28eb7593d4242dbfd461\transformed\ui-tooling-data-release\res
+com.sensorscope.app-material-release-24 C:\Users\USER PRO\.gradle\caches\transforms-4\5ef94d212c6564227bb883e6b0d08e82\transformed\material-release\res
+com.sensorscope.app-constraintlayout-2.0.1-25 C:\Users\USER PRO\.gradle\caches\transforms-4\6a524c9cc7262e0e0c4bd497d6dc99fd\transformed\constraintlayout-2.0.1\res
+com.sensorscope.app-material-icons-core-release-26 C:\Users\USER PRO\.gradle\caches\transforms-4\6c216f1d0c9b9796e2e804af44d537fd\transformed\material-icons-core-release\res
+com.sensorscope.app-lifecycle-livedata-core-2.8.5-27 C:\Users\USER PRO\.gradle\caches\transforms-4\6f21cf3cba9dc9a081489ce36ab50540\transformed\lifecycle-livedata-core-2.8.5\res
+com.sensorscope.app-navigation-compose-2.8.0-28 C:\Users\USER PRO\.gradle\caches\transforms-4\7de4564bc8a96d6c8e2a5b4385f554b0\transformed\navigation-compose-2.8.0\res
+com.sensorscope.app-activity-ktx-1.9.2-29 C:\Users\USER PRO\.gradle\caches\transforms-4\82d777cc395afbe5cb7994269b12408d\transformed\activity-ktx-1.9.2\res
+com.sensorscope.app-room-runtime-2.6.1-30 C:\Users\USER PRO\.gradle\caches\transforms-4\8e88ae1e85bad2c3c3643d406bd1814d\transformed\room-runtime-2.6.1\res
+com.sensorscope.app-emoji2-views-helper-1.3.0-31 C:\Users\USER PRO\.gradle\caches\transforms-4\9185fa7235a8533039fc72a96a8f2462\transformed\emoji2-views-helper-1.3.0\res
+com.sensorscope.app-lifecycle-viewmodel-release-32 C:\Users\USER PRO\.gradle\caches\transforms-4\93b3af9565ed3c2b967985237b9cfeab\transformed\lifecycle-viewmodel-release\res
+com.sensorscope.app-animation-core-release-33 C:\Users\USER PRO\.gradle\caches\transforms-4\94f4116187e7faa39071800009b27991\transformed\animation-core-release\res
+com.sensorscope.app-activity-1.9.2-34 C:\Users\USER PRO\.gradle\caches\transforms-4\98107bb721b3627aece172b06f1c0e1b\transformed\activity-1.9.2\res
+com.sensorscope.app-core-ktx-1.13.1-35 C:\Users\USER PRO\.gradle\caches\transforms-4\9a9dab16d64970cbed9d37c0d0f43f06\transformed\core-ktx-1.13.1\res
+com.sensorscope.app-coordinatorlayout-1.1.0-36 C:\Users\USER PRO\.gradle\caches\transforms-4\9ff08125a2d545e6dc5bbbe2ade07f18\transformed\coordinatorlayout-1.1.0\res
+com.sensorscope.app-appcompat-resources-1.6.1-37 C:\Users\USER PRO\.gradle\caches\transforms-4\a183ef345ff19fcbb30be5ee163e3a04\transformed\appcompat-resources-1.6.1\res
+com.sensorscope.app-profileinstaller-1.3.1-38 C:\Users\USER PRO\.gradle\caches\transforms-4\a5d285e4fbc808f85b3b31eeaf50a585\transformed\profileinstaller-1.3.1\res
+com.sensorscope.app-biometric-1.1.0-39 C:\Users\USER PRO\.gradle\caches\transforms-4\a7e78047f152bf6d7b813def6b3debf9\transformed\biometric-1.1.0\res
+com.sensorscope.app-material3-release-40 C:\Users\USER PRO\.gradle\caches\transforms-4\a99a4900685d188a5c82fce99fc41d5b\transformed\material3-release\res
+com.sensorscope.app-ui-tooling-preview-release-41 C:\Users\USER PRO\.gradle\caches\transforms-4\a99c7f7d0507ba5650bd64225fd6a5d3\transformed\ui-tooling-preview-release\res
+com.sensorscope.app-emoji2-1.3.0-42 C:\Users\USER PRO\.gradle\caches\transforms-4\aa3e4cc45e219eb49661d4cf464f16f6\transformed\emoji2-1.3.0\res
+com.sensorscope.app-annotation-experimental-1.4.1-43 C:\Users\USER PRO\.gradle\caches\transforms-4\abbe6d3cdf4629c987346a278b84ca2e\transformed\annotation-experimental-1.4.1\res
+com.sensorscope.app-navigation-common-2.8.0-44 C:\Users\USER PRO\.gradle\caches\transforms-4\ad5abd906b6d7b2b1d0f526a4f48debc\transformed\navigation-common-2.8.0\res
+com.sensorscope.app-cardview-1.0.0-45 C:\Users\USER PRO\.gradle\caches\transforms-4\b0fdc7af2a431daf2da0b87c7110621d\transformed\cardview-1.0.0\res
+com.sensorscope.app-hilt-navigation-compose-1.2.0-46 C:\Users\USER PRO\.gradle\caches\transforms-4\b2563853faf673e26fba65538ca44fe1\transformed\hilt-navigation-compose-1.2.0\res
+com.sensorscope.app-sqlite-2.4.0-47 C:\Users\USER PRO\.gradle\caches\transforms-4\b350d0e0d4bccd63a508158bad048f5d\transformed\sqlite-2.4.0\res
+com.sensorscope.app-lifecycle-viewmodel-savedstate-2.8.5-48 C:\Users\USER PRO\.gradle\caches\transforms-4\bbb9613eafa9e0e4a5e6dad712fd0b63\transformed\lifecycle-viewmodel-savedstate-2.8.5\res
+com.sensorscope.app-lifecycle-runtime-release-49 C:\Users\USER PRO\.gradle\caches\transforms-4\bdc6fcb456f8dc4927db54331dc3e499\transformed\lifecycle-runtime-release\res
+com.sensorscope.app-lifecycle-runtime-ktx-release-50 C:\Users\USER PRO\.gradle\caches\transforms-4\bf90e072ce3f3b510ad122154eccb428\transformed\lifecycle-runtime-ktx-release\res
+com.sensorscope.app-ui-unit-release-51 C:\Users\USER PRO\.gradle\caches\transforms-4\c74ec721838f2253ac32e572dd0e4d07\transformed\ui-unit-release\res
+com.sensorscope.app-material-ripple-release-52 C:\Users\USER PRO\.gradle\caches\transforms-4\cadfd4c2d04e280a59b6d70f36137ef9\transformed\material-ripple-release\res
+com.sensorscope.app-lifecycle-viewmodel-ktx-2.8.5-53 C:\Users\USER PRO\.gradle\caches\transforms-4\cd64cf281c1742dd5a342eba93341041\transformed\lifecycle-viewmodel-ktx-2.8.5\res
+com.sensorscope.app-sqlite-framework-2.4.0-54 C:\Users\USER PRO\.gradle\caches\transforms-4\cd947ac16fe0031cc7e83bae42b33088\transformed\sqlite-framework-2.4.0\res
+com.sensorscope.app-core-1.13.1-55 C:\Users\USER PRO\.gradle\caches\transforms-4\ce81177025888b49685ed82d0672fcc5\transformed\core-1.13.1\res
+com.sensorscope.app-runtime-release-56 C:\Users\USER PRO\.gradle\caches\transforms-4\d14792e71072fba5b2186665d59d2107\transformed\runtime-release\res
+com.sensorscope.app-ui-test-manifest-1.7.1-57 C:\Users\USER PRO\.gradle\caches\transforms-4\d6ef6d33e6953f65122f8cdfded03aad\transformed\ui-test-manifest-1.7.1\res
+com.sensorscope.app-savedstate-1.2.1-58 C:\Users\USER PRO\.gradle\caches\transforms-4\d8da9d44eefc8ef4530bd2f3b5afacf4\transformed\savedstate-1.2.1\res
+com.sensorscope.app-foundation-layout-release-59 C:\Users\USER PRO\.gradle\caches\transforms-4\dc223fe1bde0034137d8b3957e5a68e5\transformed\foundation-layout-release\res
+com.sensorscope.app-lifecycle-viewmodel-compose-release-60 C:\Users\USER PRO\.gradle\caches\transforms-4\e0128cd9f3aacaa44d2df1217b8ca6d4\transformed\lifecycle-viewmodel-compose-release\res
+com.sensorscope.app-material-1.12.0-61 C:\Users\USER PRO\.gradle\caches\transforms-4\e496bde9a03a154b1cf502723ac0ce92\transformed\material-1.12.0\res
+com.sensorscope.app-navigation-runtime-2.8.0-62 C:\Users\USER PRO\.gradle\caches\transforms-4\e5686fa0c2ddf4e3806cbee03a230149\transformed\navigation-runtime-2.8.0\res
+com.sensorscope.app-hilt-navigation-1.2.0-63 C:\Users\USER PRO\.gradle\caches\transforms-4\e87f12f9b6dccc9c808ebd31fbb4dcc4\transformed\hilt-navigation-1.2.0\res
+com.sensorscope.app-startup-runtime-1.1.1-64 C:\Users\USER PRO\.gradle\caches\transforms-4\e942720f7d93d94cb4aa4ad6c0e071a1\transformed\startup-runtime-1.1.1\res
+com.sensorscope.app-appcompat-1.6.1-65 C:\Users\USER PRO\.gradle\caches\transforms-4\e967735e1c65f7a6adbb3b8eeceb60dd\transformed\appcompat-1.6.1\res
+com.sensorscope.app-ui-graphics-release-66 C:\Users\USER PRO\.gradle\caches\transforms-4\ec9a42053b62416d9860ce1c216e0f21\transformed\ui-graphics-release\res
+com.sensorscope.app-customview-poolingcontainer-1.0.0-67 C:\Users\USER PRO\.gradle\caches\transforms-4\f789c8447b75de941a052fadbacf47bc\transformed\customview-poolingcontainer-1.0.0\res
+com.sensorscope.app-animation-release-68 C:\Users\USER PRO\.gradle\caches\transforms-4\f9b203e7aa41120f73eaea604c0fc772\transformed\animation-release\res
+com.sensorscope.app-resValues-69 C:\Users\USER PRO\android sensor\Android-Sensor-ILAB-\app\build\generated\res\resValues\debug
+com.sensorscope.app-packageDebugResources-70 C:\Users\USER PRO\android sensor\Android-Sensor-ILAB-\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.sensorscope.app-packageDebugResources-71 C:\Users\USER PRO\android sensor\Android-Sensor-ILAB-\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.sensorscope.app-debug-72 C:\Users\USER PRO\android sensor\Android-Sensor-ILAB-\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.sensorscope.app-debug-73 C:\Users\USER PRO\android sensor\Android-Sensor-ILAB-\app\src\debug\res
+com.sensorscope.app-main-74 C:\Users\USER PRO\android sensor\Android-Sensor-ILAB-\app\src\main\res
