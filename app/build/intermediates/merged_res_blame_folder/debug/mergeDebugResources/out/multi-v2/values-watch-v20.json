@@ -4,7 +4,7 @@
             "outputFile": "com.sensorscope.app-mergeDebugResources-71:/values-watch-v20/values-watch-v20.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\USER PRO\\.gradle\\caches\\transforms-4\\e967735e1c65f7a6adbb3b8eeceb60dd\\transformed\\appcompat-1.6.1\\res\\values-watch-v20\\values-watch-v20.xml",
+                    "source": "C:\\Users\\USER PRO\\.gradle\\caches\\transforms-4\\dfd4e82b10e88c977027362e0b714b7a\\transformed\\appcompat-1.7.0\\res\\values-watch-v20\\values-watch-v20.xml",
                     "from": {
                         "startLines": "2,5,8",
                         "startColumns": "4,4,4",

@@ -10,14 +10,19 @@
   - Ring buffer behavior and data retention.
   - Sensor lab goal conditions.
   - ViewModel collection scope behavior.
+  - Chart incremental-diff logic.
 - Instrumentation tests (`app/src/androidTest`):
   - App shell navigation visibility.
   - Logs screen authentication gate rendering.
+- Baseline benchmarks (`app/src/androidTest`):
+  - Ring buffer add/snapshot throughput.
+  - Chart diff engine incremental-delta throughput.
 
 ## Test design conventions
 - Keep business logic in testable classes (pure Kotlin where possible).
 - Prefer deterministic tests with fake dependencies and coroutines test dispatcher.
 - Keep UI tests focused on user-visible outcomes rather than implementation details.
+- Keep benchmark tests stable and trend-oriented; compare medians over time rather than single-run outliers.
 
 ## Expand with every new module
 - New use case: at least one success-path and one failure/edge-case unit test.

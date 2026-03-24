@@ -1,11 +1,11 @@
 package com.sensorscope.presentation.logs;
 
-import androidx.activity.ComponentActivity;
 import androidx.compose.foundation.layout.Arrangement;
 import androidx.compose.material3.CardDefaults;
 import androidx.compose.runtime.Composable;
 import androidx.compose.ui.Modifier;
 import androidx.compose.ui.text.font.FontWeight;
+import androidx.fragment.app.FragmentActivity;
 import com.sensorscope.core.security.BiometricAuthenticator;
 import java.text.DateFormat;
 import java.util.Date;
