@@ -22,6 +22,9 @@ SensorScope is a production-oriented Android app that streams hardware sensor da
 - Instrumentation tests are in `app/src/androidTest`.
 - Team-wide testing expectations are defined in `TESTING.md`.
 
+## Documentation
+- Sensor graph interpretation guide: `docs/SENSOR_GRAPH_INTERPRETATION.md`
+
 ## Feature coverage
 - Real-time accelerometer/gyroscope/magnetometer streams
 - Dashboard with cards, live values, preview charts
