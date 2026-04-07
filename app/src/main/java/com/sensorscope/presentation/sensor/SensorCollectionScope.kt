@@ -11,7 +11,17 @@ sealed class SensorCollectionScope {
         return when (this) {
             Dashboard -> SensorType.entries.toSet()
             is Detail -> setOf(sensorType)
-            Labs -> setOf(SensorType.ACCELEROMETER, SensorType.MAGNETOMETER)
+            Labs -> setOf(
+                SensorType.ACCELEROMETER,
+                SensorType.MAGNETOMETER,
+                SensorType.GYROSCOPE,
+                SensorType.LIGHT,
+                SensorType.PROXIMITY,
+                SensorType.PRESSURE,
+                SensorType.AUDIO_LEVEL,
+                SensorType.BLUETOOTH_SIGNAL,
+                SensorType.CAMERA_METADATA
+            )
         }
     }
 }

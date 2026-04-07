@@ -7,6 +7,7 @@ import com.sensorscope.core.model.SensorData
 import com.sensorscope.core.model.SensorType
 import com.sensorscope.core.util.SensorRingBuffer
 import com.sensorscope.domain.analytics.SensorAnalyticsEngine
+import com.sensorscope.domain.lab.LabId
 import com.sensorscope.domain.lab.SensorLab
 import com.sensorscope.domain.lab.SensorLabEngine
 import com.sensorscope.domain.usecase.ManageSensorSessionUseCase
@@ -35,12 +36,13 @@ class SensorViewModel @Inject constructor(
     )
     val uiState: StateFlow<SensorUiState> = _uiState.asStateFlow()
 
-    private val _labs = MutableStateFlow<List<SensorLab>>(emptyList())
-    val labs: StateFlow<List<SensorLab>> = _labs.asStateFlow()
-
     private val chartBuffers = SensorType.entries.associateWith { SensorRingBuffer(CHART_BUFFER_CAPACITY) }
     private val activeJobs = mutableMapOf<SensorType, Job>()
     private val labEngine = SensorLabEngine()
+    private val labTemplates = labEngine.initialLabs()
+    private val labTemplateMap = labTemplates.associateBy { it.id }
+    private val _labs = MutableStateFlow(labTemplates)
+    val labs: StateFlow<List<SensorLab>> = _labs.asStateFlow()
     private var collectionScope: SensorCollectionScope = SensorCollectionScope.Dashboard
 
     companion object {
@@ -129,17 +131,31 @@ class SensorViewModel @Inject constructor(
 
     private fun updateLabs(type: SensorType, data: SensorData) {
         val existing = _labs.value.associateBy { it.id }.toMutableMap()
+        val updates = labEngine.evaluate(type, data)
 
-        if (type == SensorType.ACCELEROMETER) {
-            val shakeLab = labEngine.updateShakeLab(data)
-            existing[shakeLab.id] = shakeLab
-        }
-        if (type == SensorType.MAGNETOMETER) {
-            val northLab = labEngine.updateMagneticNorthLab(data)
-            existing[northLab.id] = northLab
+        updates.forEach { updatedLab ->
+            val previous = existing[updatedLab.id]
+            existing[updatedLab.id] = when {
+                previous?.isCompleted == true -> updatedLab.copy(
+                    isCompleted = true,
+                    progressText = previous.progressText
+                )
+                updatedLab.isCompleted -> updatedLab.copy(progressText = "Completed. ${updatedLab.progressText}")
+                else -> updatedLab
+            }
         }
 
-        _labs.value = existing.values.toList()
+        _labs.value = labTemplates.map { template -> existing[template.id] ?: template }
+    }
+
+    fun relaunchLab(id: LabId) {
+        labEngine.onRelaunch(id)
+        val template = labTemplateMap[id] ?: return
+        _labs.update { current ->
+            current.map { lab ->
+                if (lab.id == id) template else lab
+            }
+        }
     }
 
     fun setSamplingRateFast(enabled: Boolean) {

@@ -17,6 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,12 +38,17 @@ import com.sensorscope.presentation.labs.LabsScreen
 import com.sensorscope.presentation.logs.LogsScreen
 import com.sensorscope.presentation.logs.LogsViewModel
 import com.sensorscope.presentation.navigation.Destination
+import com.sensorscope.presentation.onboarding.OnboardingScreen
 import com.sensorscope.presentation.sensor.SensorViewModel
 import com.sensorscope.ui.theme.SensorScopeTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    private val prefs by lazy {
+        getSharedPreferences("sensor_scope_preferences", MODE_PRIVATE)
+    }
 
     private val storagePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -58,9 +66,21 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
             SensorScopeTheme {
-                SensorScopeApp(onShareUri = { uri -> shareFile(uri) })
+                SensorScopeApp(
+                    onShareUri = { uri -> shareFile(uri) },
+                    shouldShowOnboarding = shouldShowOnboarding(),
+                    onCompleteOnboarding = { markOnboardingSeen() }
+                )
             }
         }
+    }
+
+    private fun shouldShowOnboarding(): Boolean {
+        return !prefs.getBoolean(KEY_ONBOARDING_DONE, false)
+    }
+
+    private fun markOnboardingSeen() {
+        prefs.edit().putBoolean(KEY_ONBOARDING_DONE, true).apply()
     }
 
     private fun requestStoragePermissionIfRequired() {
@@ -103,13 +123,22 @@ class MainActivity : AppCompatActivity() {
         }
         startActivity(Intent.createChooser(intent, "Share CSV"))
     }
+
+    companion object {
+        private const val KEY_ONBOARDING_DONE = "key_onboarding_done"
+    }
 }
 
 @Composable
-private fun SensorScopeApp(onShareUri: (Uri) -> Unit) {
+private fun SensorScopeApp(
+    onShareUri: (Uri) -> Unit,
+    shouldShowOnboarding: Boolean,
+    onCompleteOnboarding: () -> Unit
+) {
     val navController = rememberNavController()
     val sensorViewModel: SensorViewModel = hiltViewModel()
     val logsViewModel: LogsViewModel = hiltViewModel()
+    var showOnboarding by rememberSaveable { mutableStateOf(shouldShowOnboarding) }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -119,6 +148,16 @@ private fun SensorScopeApp(onShareUri: (Uri) -> Unit) {
         val uri = exportedUri?.let(Uri::parse) ?: return@LaunchedEffect
         onShareUri(uri)
         logsViewModel.clearExportState()
+    }
+
+    if (showOnboarding) {
+        OnboardingScreen(
+            onContinue = {
+                showOnboarding = false
+                onCompleteOnboarding()
+            }
+        )
+        return
     }
 
     Scaffold(

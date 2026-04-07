@@ -1,6 +1,7 @@
 package com.sensorscope.domain.lab
 
 import com.sensorscope.core.model.SensorData
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -25,5 +26,15 @@ class SensorLabEngineTest {
 
         assertTrue(nearNorth.isCompleted)
         assertFalse(notNorth.isCompleted)
+    }
+
+    @Test
+    fun initialLabsContainsTenExperiments() {
+        val labs = engine.initialLabs()
+
+        assertEquals(10, labs.size)
+        assertTrue(labs.any { it.id == LabId.SHAKE_CHALLENGE })
+        assertTrue(labs.any { it.id == LabId.MAGNETIC_NORTH })
+        assertTrue(labs.any { it.id == LabId.CAMERA_CAPABILITY_CHECK })
     }
 }
