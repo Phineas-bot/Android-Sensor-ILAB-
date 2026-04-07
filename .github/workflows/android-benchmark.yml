@@ -1,0 +1,63 @@
+name: Android Benchmark Gate
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      update_baseline:
+        description: "Write baseline from current run"
+        required: false
+        default: "false"
+
+env:
+  BENCHMARK_MAX_REGRESSION_PERCENT: "10"
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+
+      - name: Run benchmark instrumentation tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          target: google_apis
+          profile: pixel_5
+          script: ./gradlew :app:connectedDebugAndroidTest --stacktrace
+
+      - name: Evaluate benchmark regression gate
+        shell: pwsh
+        run: |
+          $isUpdateBaseline = "${{ github.event.inputs.update_baseline }}" -eq "true"
+          if ($isUpdateBaseline) {
+            ./scripts/benchmark-gate.ps1 -ProjectDir "$PWD" -ArtifactDir "$PWD/build/benchmark-reports" -WriteBaseline -AllowMissingBaseline
+          } else {
+            ./scripts/benchmark-gate.ps1 -ProjectDir "$PWD" -ArtifactDir "$PWD/build/benchmark-reports" -AllowMissingBaseline
+          }
+
+      - name: Upload benchmark artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-reports
+          path: |
+            build/benchmark-reports/**
+            app/build/outputs/connected_android_test_additional_output/**
+            app/build/reports/androidTests/connected/**
