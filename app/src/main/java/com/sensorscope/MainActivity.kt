@@ -42,14 +42,19 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private val permissionLauncher = registerForActivityResult(
+    private val storagePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
+    ) { }
+
+    private val runtimePermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
     ) { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         requestStoragePermissionIfRequired()
+        requestSensorPermissionsIfRequired()
 
         setContent {
             SensorScopeTheme {
@@ -64,7 +69,29 @@ class MainActivity : AppCompatActivity() {
         val permission = Manifest.permission.WRITE_EXTERNAL_STORAGE
         val granted = ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
         if (!granted) {
-            permissionLauncher.launch(permission)
+            storagePermissionLauncher.launch(permission)
+        }
+    }
+
+    private fun requestSensorPermissionsIfRequired() {
+        val required = mutableListOf(
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.CAMERA
+        )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            required += Manifest.permission.BLUETOOTH_SCAN
+            required += Manifest.permission.BLUETOOTH_CONNECT
+        } else {
+            required += Manifest.permission.ACCESS_FINE_LOCATION
+        }
+
+        val missing = required.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (missing.isNotEmpty()) {
+            runtimePermissionsLauncher.launch(missing.toTypedArray())
         }
     }
 

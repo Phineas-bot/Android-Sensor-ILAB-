@@ -29,8 +29,12 @@ SensorScope is a production-oriented Android app that streams hardware sensor da
 
 ## Feature coverage
 - Real-time accelerometer/gyroscope/magnetometer/light/proximity/pressure streams
+- Real-time audio level stream (microphone)
+- Real-time Bluetooth signal stream (BLE RSSI)
+- Camera metadata stream (device camera capability score)
 - Dashboard with cards, live values, preview charts
 - Sensor details with full chart + controls
+- Derived analytics: trend summaries and cross-sensor insights
 - Session logging to Room
 - CSV export and share intent
 - Sensor Labs (Shake challenge, Magnetic north)

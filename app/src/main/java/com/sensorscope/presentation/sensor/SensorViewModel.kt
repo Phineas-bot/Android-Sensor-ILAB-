@@ -6,6 +6,7 @@ import com.sensorscope.core.model.SamplingMode
 import com.sensorscope.core.model.SensorData
 import com.sensorscope.core.model.SensorType
 import com.sensorscope.core.util.SensorRingBuffer
+import com.sensorscope.domain.analytics.SensorAnalyticsEngine
 import com.sensorscope.domain.lab.SensorLab
 import com.sensorscope.domain.lab.SensorLabEngine
 import com.sensorscope.domain.usecase.ManageSensorSessionUseCase
@@ -23,7 +24,8 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class SensorViewModel @Inject constructor(
     private val observeSensorDataUseCase: ObserveSensorDataUseCase,
-    private val manageSensorSessionUseCase: ManageSensorSessionUseCase
+    private val manageSensorSessionUseCase: ManageSensorSessionUseCase,
+    private val analyticsEngine: SensorAnalyticsEngine
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -108,9 +110,17 @@ class SensorViewModel @Inject constructor(
         chartBuffers[type]?.add(data)
         _uiState.update { current ->
             val history = chartBuffers[type]?.toList().orEmpty()
+            val nextSeries = current.chartSeries + (type to history)
+            val nextTrends = nextSeries.mapNotNull { (sensor, series) ->
+                analyticsEngine.calculateTrendSummary(sensor, series)?.let { sensor to it }
+            }.toMap()
+            val nextInsights = analyticsEngine.crossSensorInsights(nextSeries)
+
             current.copy(
                 latestValues = current.latestValues + (type to data),
-                chartSeries = current.chartSeries + (type to history)
+                chartSeries = nextSeries,
+                trendSummaries = nextTrends,
+                crossSensorInsights = nextInsights
             )
         }
 

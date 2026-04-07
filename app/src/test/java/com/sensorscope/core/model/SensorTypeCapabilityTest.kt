@@ -33,5 +33,17 @@ class SensorTypeCapabilityTest {
         assertEquals(AxisModel.SINGLE_VALUE, SensorType.PRESSURE.capability.axisModel)
         assertEquals(ValueDisplayFormat.VALUE_WITH_UNIT, SensorType.PRESSURE.capability.displayFormat)
         assertEquals("hPa", SensorType.PRESSURE.capability.unit)
+
+        assertEquals(AxisModel.SINGLE_VALUE, SensorType.AUDIO_LEVEL.capability.axisModel)
+        assertEquals(ValueDisplayFormat.VALUE_WITH_UNIT, SensorType.AUDIO_LEVEL.capability.displayFormat)
+        assertEquals("dBFS", SensorType.AUDIO_LEVEL.capability.unit)
+
+        assertEquals(AxisModel.SINGLE_VALUE, SensorType.CAMERA_METADATA.capability.axisModel)
+        assertEquals(ValueDisplayFormat.VALUE_WITH_UNIT, SensorType.CAMERA_METADATA.capability.displayFormat)
+        assertEquals("score", SensorType.CAMERA_METADATA.capability.unit)
+
+        assertEquals(AxisModel.SINGLE_VALUE, SensorType.BLUETOOTH_SIGNAL.capability.axisModel)
+        assertEquals(ValueDisplayFormat.VALUE_WITH_UNIT, SensorType.BLUETOOTH_SIGNAL.capability.displayFormat)
+        assertEquals("dBm", SensorType.BLUETOOTH_SIGNAL.capability.unit)
     }
 }

@@ -63,6 +63,9 @@ class SensorScopeInstrumentationTest {
         composeRule.onNodeWithText("Light").assertIsDisplayed()
         composeRule.onNodeWithText("Proximity").assertIsDisplayed()
         composeRule.onNodeWithText("Pressure").assertIsDisplayed()
+        composeRule.onNodeWithText("Audio Level").assertIsDisplayed()
+        composeRule.onNodeWithText("Camera Metadata").assertIsDisplayed()
+        composeRule.onNodeWithText("Bluetooth Signal").assertIsDisplayed()
     }
 
     @Test
@@ -73,7 +76,10 @@ class SensorScopeInstrumentationTest {
             "Magnetometer",
             "Light",
             "Proximity",
-            "Pressure"
+            "Pressure",
+            "Audio Level",
+            "Camera Metadata",
+            "Bluetooth Signal"
         )
 
         sensors.forEach { sensorName ->

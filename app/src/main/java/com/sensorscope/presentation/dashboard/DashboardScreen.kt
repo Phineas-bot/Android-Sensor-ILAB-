@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sensorscope.core.model.SensorType
+import com.sensorscope.domain.analytics.SensorTrendSummary
 import com.sensorscope.presentation.components.SensorLineChart
 import com.sensorscope.presentation.sensor.SensorCollectionScope
 import com.sensorscope.presentation.sensor.SensorViewModel
@@ -68,6 +69,22 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        if (state.crossSensorInsights.isNotEmpty()) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Live Analytics", fontWeight = FontWeight.Bold)
+                    state.crossSensorInsights.forEach { insight ->
+                        Text("- $insight", modifier = Modifier.padding(top = 4.dp))
+                    }
+                }
+            }
+        }
+
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(bottom = 24.dp)
@@ -96,6 +113,10 @@ fun DashboardScreen(
                             )
                         }
 
+                        state.trendSummaries[type]?.let { trend ->
+                            TrendSummaryBlock(trend = trend)
+                        }
+
                         if (history.isNotEmpty()) {
                             SensorLineChart(
                                 points = history,
@@ -108,4 +129,12 @@ fun DashboardScreen(
             }
         }
     }
+}
+
+@Composable
+private fun TrendSummaryBlock(trend: SensorTrendSummary) {
+    Text(
+        text = "Trend: ${trend.direction} | avg ${"%.2f".format(trend.average)} | range ${"%.2f".format(trend.minimum)}-${"%.2f".format(trend.maximum)}",
+        modifier = Modifier.padding(top = 6.dp)
+    )
 }

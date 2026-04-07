@@ -18,11 +18,14 @@ import kotlinx.coroutines.flow.callbackFlow
 
 @Singleton
 class SensorManagerHelper @Inject constructor(
-    @ApplicationContext context: Context
+    @ApplicationContext context: Context,
+    private val audioLevelProvider: AudioLevelProvider,
+    private val cameraMetadataProvider: CameraMetadataProvider,
+    private val bluetoothSignalProvider: BluetoothSignalProvider
 ) {
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
-    private val sensors: Map<SensorType, Sensor?> = mapOf(
+    private val hardwareSensors: Map<SensorType, Sensor?> = mapOf(
         SensorType.ACCELEROMETER to sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
         SensorType.GYROSCOPE to sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
         SensorType.MAGNETOMETER to sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
@@ -31,10 +34,33 @@ class SensorManagerHelper @Inject constructor(
         SensorType.PRESSURE to sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE)
     )
 
-    fun availableSensors(): Map<SensorType, Boolean> = sensors.mapValues { it.value != null }
+    fun availableSensors(): Map<SensorType, Boolean> {
+        val physicalAvailability = hardwareSensors.mapValues { it.value != null }
+        return physicalAvailability + mapOf(
+            SensorType.AUDIO_LEVEL to audioLevelProvider.isAvailable(),
+            SensorType.CAMERA_METADATA to cameraMetadataProvider.isAvailable(),
+            SensorType.BLUETOOTH_SIGNAL to bluetoothSignalProvider.isAvailable()
+        )
+    }
 
     fun observeSensor(sensorType: SensorType, samplingMode: SamplingMode): Flow<SensorData> = callbackFlow {
-        val sensor = sensors[sensorType]
+        when (sensorType) {
+            SensorType.AUDIO_LEVEL -> {
+                audioLevelProvider.observe(samplingMode).collect { trySend(it) }
+                return@callbackFlow
+            }
+            SensorType.CAMERA_METADATA -> {
+                cameraMetadataProvider.observe(samplingMode).collect { trySend(it) }
+                return@callbackFlow
+            }
+            SensorType.BLUETOOTH_SIGNAL -> {
+                bluetoothSignalProvider.observe(samplingMode).collect { trySend(it) }
+                return@callbackFlow
+            }
+            else -> Unit
+        }
+
+        val sensor = hardwareSensors[sensorType]
         if (sensor == null) {
             close()
             return@callbackFlow
@@ -75,7 +101,7 @@ class SensorManagerHelper @Inject constructor(
     fun observeAllSensors(): Flow<SensorSample> = callbackFlow {
         val listeners = mutableListOf<SensorEventListener>()
 
-        sensors.forEach { (type, sensor) ->
+        hardwareSensors.forEach { (type, sensor) ->
             if (sensor == null) return@forEach
 
             val listener = object : SensorEventListener {
