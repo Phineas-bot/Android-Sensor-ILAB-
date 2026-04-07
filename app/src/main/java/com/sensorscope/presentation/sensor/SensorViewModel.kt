@@ -2,6 +2,7 @@ package com.sensorscope.presentation.sensor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sensorscope.core.model.SamplingMode
 import com.sensorscope.core.model.SensorData
 import com.sensorscope.core.model.SensorType
 import com.sensorscope.core.util.SensorRingBuffer
@@ -71,9 +72,10 @@ class SensorViewModel @Inject constructor(
 
     private fun startSensorCollection(type: SensorType, sessionId: Long) {
         if (_uiState.value.availableSensors[type] != true) return
+        val samplingMode = _uiState.value.samplingMode
 
         activeJobs[type] = viewModelScope.launch {
-            observeSensorDataUseCase(type).collectLatest { data ->
+            observeSensorDataUseCase(type, samplingMode).collectLatest { data ->
                 onSensorData(type, data)
                 manageSensorSessionUseCase.log(sessionId, type, data)
             }
@@ -131,11 +133,16 @@ class SensorViewModel @Inject constructor(
     }
 
     fun setSamplingRateFast(enabled: Boolean) {
-        // Sensor delay can be made configurable by extending repository/helper registration.
-        _uiState.update {
-            it.copy(
-                errorMessage = if (enabled) "Fast sampling requested. Restart sensor stream to apply." else null
-            )
+        val targetMode = if (enabled) SamplingMode.FAST else SamplingMode.NORMAL
+        if (_uiState.value.samplingMode == targetMode) return
+
+        _uiState.update { it.copy(samplingMode = targetMode, errorMessage = null) }
+
+        val sessionId = _uiState.value.currentSessionId ?: return
+        if (_uiState.value.isListening) {
+            activeJobs.values.forEach { it.cancel() }
+            activeJobs.clear()
+            reconcileCollectors(sessionId)
         }
     }
 

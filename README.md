@@ -24,9 +24,11 @@ SensorScope is a production-oriented Android app that streams hardware sensor da
 
 ## Documentation
 - Sensor graph interpretation guide: `docs/SENSOR_GRAPH_INTERPRETATION.md`
+- CSV export format: `docs/CSV_EXPORT_FORMAT.md`
+- Performance baseline notes: `docs/PERFORMANCE_BASELINE.md`
 
 ## Feature coverage
-- Real-time accelerometer/gyroscope/magnetometer streams
+- Real-time accelerometer/gyroscope/magnetometer/light/proximity/pressure streams
 - Dashboard with cards, live values, preview charts
 - Sensor details with full chart + controls
 - Session logging to Room

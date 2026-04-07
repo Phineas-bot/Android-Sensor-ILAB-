@@ -2,6 +2,7 @@ package com.sensorscope.data.repository
 
 import com.sensorscope.core.model.SensorData
 import com.sensorscope.core.model.SensorType
+import com.sensorscope.core.model.SamplingMode
 import com.sensorscope.core.sensor.SensorManagerHelper
 import com.sensorscope.data.local.dao.SensorReadingDao
 import com.sensorscope.data.local.dao.SensorSessionDao
@@ -14,6 +15,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -28,11 +30,18 @@ class SensorRepositoryImpl @Inject constructor(
 
     override fun availableSensors(): Map<SensorType, Boolean> = sensorManagerHelper.availableSensors()
 
-    override fun observeSensor(type: SensorType): Flow<SensorData> {
-        return sensorManagerHelper.observeSensor(type)
-            .sample(100.milliseconds)
+    @OptIn(FlowPreview::class)
+    override fun observeSensor(type: SensorType, samplingMode: SamplingMode): Flow<SensorData> {
+        return sensorManagerHelper.observeSensor(type, samplingMode)
+            .sample(samplingMode.toSampleWindow())
             .flowOn(Dispatchers.Default)
     }
+
+    private fun SamplingMode.toSampleWindow() =
+        when (this) {
+            SamplingMode.NORMAL -> 100.milliseconds
+            SamplingMode.FAST -> 33.milliseconds
+        }
 
     override suspend fun startSession(name: String): Long {
         return sessionDao.insertSession(

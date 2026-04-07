@@ -34,6 +34,21 @@ Practical meaning:
 - Measures ambient magnetic field components.
 - Readings vary with orientation and nearby magnetic materials.
 
+### Light
+- Unit: lux
+- Uses X as primary light intensity value.
+- Y and Z are defaulted to 0 for compatibility with the shared chart model.
+
+### Proximity
+- Unit: centimeters (or device-specific distance unit)
+- Uses X as primary proximity distance value.
+- Y and Z are defaulted to 0 for compatibility with the shared chart model.
+
+### Pressure
+- Unit: hPa
+- Uses X as primary atmospheric pressure value.
+- Y and Z are defaulted to 0 for compatibility with the shared chart model.
+
 ## 3) Interpreting graph shapes
 
 ### Stable flat lines
@@ -75,6 +90,30 @@ Interpretation tip:
 
 Interpretation tip:
 - For heading-like use, move away from laptops, speakers, metal desks, and magnetic cases.
+
+## Light graph
+- Rising X trend: brighter environment.
+- Falling X trend: darker environment.
+- Sudden jumps: abrupt lighting changes (torch on, screen flash, moving indoors/outdoors).
+
+Interpretation tip:
+- Ignore Y and Z for light; they are placeholders.
+
+## Proximity graph
+- Near-zero X values: object close to sensor.
+- Higher X values: object moved away.
+- Fast toggling: repeated near/far movement in front of the sensor.
+
+Interpretation tip:
+- Ignore Y and Z for proximity; they are placeholders.
+
+## Pressure graph
+- Slowly drifting X trend: natural ambient pressure variation.
+- Step changes: movement between floors or abrupt environment change.
+- Short spikes: motion, handling disturbance, or sensor noise.
+
+Interpretation tip:
+- Ignore Y and Z for pressure; they are placeholders.
 
 ## 5) Labs linkage to graph meaning
 
