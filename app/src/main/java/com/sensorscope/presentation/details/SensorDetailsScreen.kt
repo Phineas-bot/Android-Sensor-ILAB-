@@ -16,12 +16,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sensorscope.core.model.SamplingMode
 import com.sensorscope.core.model.SensorType
 import com.sensorscope.presentation.components.SensorLineChart
 import com.sensorscope.presentation.sensor.SensorCollectionScope
@@ -35,7 +33,6 @@ fun SensorDetailsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val latest = state.latestValues[sensorType]
     val history = state.chartSeries[sensorType].orEmpty()
-    var fastSampling by remember { mutableStateOf(false) }
 
     DisposableEffect(sensorType) {
         viewModel.setCollectionScope(SensorCollectionScope.Detail(sensorType))
@@ -58,12 +55,12 @@ fun SensorDetailsScreen(
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Real-time values")
                 Text(
-                    text = if (latest == null) "No data yet" else "X: %.2f  Y: %.2f  Z: %.2f".format(latest.x, latest.y, latest.z)
+                    text = latest?.let(sensorType.capability::formatReading) ?: "No data yet"
                 )
             }
         }
 
-        SensorLineChart(points = history)
+        SensorLineChart(points = history, axisModel = sensorType.capability.axisModel)
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Button(onClick = viewModel::startListening, enabled = !state.isListening) {
@@ -80,12 +77,14 @@ fun SensorDetailsScreen(
         ) {
             Text("Fast sampling")
             Switch(
-                checked = fastSampling,
-                onCheckedChange = {
-                    fastSampling = it
-                    viewModel.setSamplingRateFast(it)
-                }
+                checked = state.samplingMode == SamplingMode.FAST,
+                onCheckedChange = viewModel::setSamplingRateFast
             )
         }
+
+        Text(
+            text = "Active mode: ${if (state.samplingMode == SamplingMode.FAST) "FAST" else "NORMAL"}",
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }

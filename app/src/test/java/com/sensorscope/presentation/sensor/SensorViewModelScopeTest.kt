@@ -1,6 +1,7 @@
 package com.sensorscope.presentation.sensor
 
 import com.sensorscope.core.model.SensorData
+import com.sensorscope.core.model.SamplingMode
 import com.sensorscope.core.model.SensorType
 import com.sensorscope.domain.usecase.ManageSensorSessionUseCase
 import com.sensorscope.domain.usecase.ObserveSensorDataUseCase
@@ -45,7 +46,8 @@ class SensorViewModelScopeTest {
         val observeUseCase = ObserveSensorDataUseCase(
             repository = object : com.sensorscope.domain.repository.SensorRepository {
                 override fun availableSensors(): Map<SensorType, Boolean> = SensorType.entries.associateWith { true }
-                override fun observeSensor(type: SensorType): Flow<SensorData> = flows.getValue(type)
+                override fun observeSensor(type: SensorType, samplingMode: SamplingMode): Flow<SensorData> =
+                    flows.getValue(type)
                 override suspend fun startSession(name: String): Long = 1L
                 override suspend fun stopSession(sessionId: Long) = Unit
                 override suspend fun logReading(sessionId: Long, sensorType: SensorType, data: SensorData) = Unit
@@ -57,7 +59,8 @@ class SensorViewModelScopeTest {
         val manageUseCase = ManageSensorSessionUseCase(
             repository = object : com.sensorscope.domain.repository.SensorRepository {
                 override fun availableSensors(): Map<SensorType, Boolean> = SensorType.entries.associateWith { true }
-                override fun observeSensor(type: SensorType): Flow<SensorData> = flows.getValue(type)
+                override fun observeSensor(type: SensorType, samplingMode: SamplingMode): Flow<SensorData> =
+                    flows.getValue(type)
                 override suspend fun startSession(name: String): Long = 1L
                 override suspend fun stopSession(sessionId: Long) = Unit
                 override suspend fun logReading(sessionId: Long, sensorType: SensorType, data: SensorData) = Unit

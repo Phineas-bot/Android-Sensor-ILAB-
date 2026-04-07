@@ -1,15 +1,28 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# Gradle and build outputs
+.gradle/
+**/build/
+
+# Local machine configuration
 local.properties
+
+# IDE
+.idea/
+*.iml
+
+# Native build artifacts
+.externalNativeBuild/
+.cxx/
+
+# Generated artifacts
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Logs and captures
+captures/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

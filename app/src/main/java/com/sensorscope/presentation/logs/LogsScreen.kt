@@ -25,15 +25,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sensorscope.core.security.BiometricAuthenticator
 import java.text.DateFormat
 import java.util.Date
 
 @Composable
 fun LogsScreen(viewModel: LogsViewModel) {
     val sessions by viewModel.sessions.collectAsStateWithLifecycle()
+    val exportMessage by viewModel.exportMessage.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val activity = context as? FragmentActivity
+    val authHandler = remember(activity) { logsAuthHandler(activity) }
     val formatter = remember { DateFormat.getDateTimeInstance() }
     var unlocked by remember { mutableStateOf(false) }
     var authMessage by remember { mutableStateOf<String?>(null) }
@@ -49,20 +50,9 @@ fun LogsScreen(viewModel: LogsViewModel) {
             Text("Authenticate to view and export sessions", modifier = Modifier.padding(top = 8.dp))
             Button(
                 onClick = {
-                    val hostActivity = activity ?: run {
-                        authMessage = "Biometric authentication unavailable"
-                        return@Button
-                    }
-                    val authenticator = BiometricAuthenticator(hostActivity)
-                    if (!authenticator.canAuthenticate()) {
-                        authMessage = "Biometric hardware not available"
-                        return@Button
-                    }
-                    authenticator.authenticate(
-                        title = "Unlock Sensor Logs",
-                        subtitle = "Use biometrics to continue",
+                    authHandler.authenticate(
                         onSuccess = { unlocked = true },
-                        onFailure = { authMessage = it }
+                        onMessage = { authMessage = it }
                     )
                 },
                 modifier = Modifier.padding(top = 12.dp)
@@ -76,6 +66,23 @@ fun LogsScreen(viewModel: LogsViewModel) {
         }
 
         Text("Recorded Sessions", style = MaterialTheme.typography.headlineSmall)
+        exportMessage?.let { message ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.weight(1f)
+                )
+                Button(onClick = viewModel::clearExportMessage) {
+                    Text("Dismiss")
+                }
+            }
+        }
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),

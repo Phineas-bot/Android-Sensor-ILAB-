@@ -7,6 +7,8 @@ import com.sensorscope.data.local.dao.SensorReadingDao
 import com.sensorscope.data.local.dao.SensorSessionDao
 import com.sensorscope.data.repository.SensorRepositoryImpl
 import com.sensorscope.domain.repository.SensorRepository
+import com.sensorscope.presentation.logs.SessionCsvExporter
+import com.sensorscope.presentation.logs.SessionCsvExporterImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -41,4 +43,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindSensorRepository(impl: SensorRepositoryImpl): SensorRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSessionCsvExporter(impl: SessionCsvExporterImpl): SessionCsvExporter
 }

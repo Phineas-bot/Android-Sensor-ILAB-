@@ -80,7 +80,7 @@ fun DashboardScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(enabled = available) { onOpenDetails(type) },
+                        .clickable { onOpenDetails(type) },
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surface
                     )
@@ -91,13 +91,17 @@ fun DashboardScreen(
 
                         if (current != null) {
                             Text(
-                                text = "X: %.2f  Y: %.2f  Z: %.2f".format(current.x, current.y, current.z),
+                                text = type.capability.formatReading(current),
                                 modifier = Modifier.padding(top = 6.dp)
                             )
                         }
 
                         if (history.isNotEmpty()) {
-                            SensorLineChart(points = history, modifier = Modifier.padding(top = 8.dp))
+                            SensorLineChart(
+                                points = history,
+                                axisModel = type.capability.axisModel,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
                         }
                     }
                 }
