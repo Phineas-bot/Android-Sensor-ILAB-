@@ -23,8 +23,8 @@ data class SensorCapability(
 
     fun formatReading(data: SensorData): String {
         return when (displayFormat) {
-            ValueDisplayFormat.VALUE_WITH_UNIT -> "Value: %.2f %s".format(data.x, unit)
-            ValueDisplayFormat.XYZ -> "X: %.2f  Y: %.2f  Z: %.2f".format(data.x, data.y, data.z)
+            ValueDisplayFormat.VALUE_WITH_UNIT -> "%.3f $unit".format(data.x)
+            ValueDisplayFormat.XYZ -> "X: %.3f  Y: %.3f  Z: %.3f  $unit".format(data.x, data.y, data.z)
         }
     }
 }

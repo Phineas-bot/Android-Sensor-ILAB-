@@ -71,13 +71,14 @@ class SensorRepositoryImpl @Inject constructor(
     }
 
     override fun observeSessions(): Flow<List<SensorSessionSummary>> {
-        return sessionDao.observeSessions().map { sessions ->
-            sessions.map {
+        return sessionDao.observeSessionsWithCount().map { rows ->
+            rows.map {
                 SensorSessionSummary(
-                    id = it.id,
-                    name = it.name,
-                    startedAtMillis = it.startedAtMillis,
-                    endedAtMillis = it.endedAtMillis
+                    id = it.session.id,
+                    name = it.session.name,
+                    startedAtMillis = it.session.startedAtMillis,
+                    endedAtMillis = it.session.endedAtMillis,
+                    readingCount = it.readingCount
                 )
             }
         }
