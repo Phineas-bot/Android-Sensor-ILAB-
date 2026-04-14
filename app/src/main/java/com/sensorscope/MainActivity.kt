@@ -9,6 +9,9 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -35,7 +38,10 @@ import com.sensorscope.presentation.labs.LabsScreen
 import com.sensorscope.presentation.logs.LogsScreen
 import com.sensorscope.presentation.logs.LogsViewModel
 import com.sensorscope.presentation.navigation.Destination
+import com.sensorscope.presentation.onboarding.OnboardingScreen
+import com.sensorscope.presentation.onboarding.OnboardingViewModel
 import com.sensorscope.presentation.sensor.SensorViewModel
+import com.sensorscope.ui.theme.Slate900
 import com.sensorscope.ui.theme.SensorScopeTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -80,6 +86,29 @@ class MainActivity : AppCompatActivity() {
 
 @Composable
 private fun SensorScopeApp(onShareUri: (Uri) -> Unit) {
+    val onboardingViewModel: OnboardingViewModel = hiltViewModel()
+    val isOnboardingComplete by onboardingViewModel.isOnboardingComplete.collectAsStateWithLifecycle()
+
+    when (isOnboardingComplete) {
+        // Still reading DataStore — show blank dark screen for the brief moment
+        null -> Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Slate900)
+        )
+
+        // Onboarding not yet completed — show the onboarding flow
+        false -> OnboardingScreen(
+            onComplete = { onboardingViewModel.markComplete() }
+        )
+
+        // Onboarding done — show the main app
+        else -> MainApp(onShareUri = onShareUri)
+    }
+}
+
+@Composable
+private fun MainApp(onShareUri: (Uri) -> Unit) {
     val navController = rememberNavController()
     val sensorViewModel: SensorViewModel = hiltViewModel()
     val logsViewModel: LogsViewModel = hiltViewModel()
@@ -143,7 +172,9 @@ private fun SensorScopeApp(onShareUri: (Uri) -> Unit) {
                 arguments = listOf(navArgument("sensorType") { type = NavType.StringType })
             ) { backStackEntry ->
                 val sensorTypeName = backStackEntry.arguments?.getString("sensorType")
-                val sensorType = runCatching { SensorType.valueOf(sensorTypeName ?: "") }.getOrDefault(SensorType.ACCELEROMETER)
+                val sensorType = runCatching {
+                    SensorType.valueOf(sensorTypeName ?: "")
+                }.getOrDefault(SensorType.ACCELEROMETER)
                 SensorDetailsScreen(
                     sensorType = sensorType,
                     viewModel = sensorViewModel

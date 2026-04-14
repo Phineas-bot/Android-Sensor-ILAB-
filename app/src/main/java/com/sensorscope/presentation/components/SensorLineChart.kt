@@ -12,6 +12,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.sensorscope.core.model.AxisModel
@@ -77,7 +78,7 @@ fun SensorLineChart(
                     lineWidth = 2f
                     setDrawValues(false)
                 }
-                val dataSets = mutableListOf(xSet)
+                val dataSets = mutableListOf<ILineDataSet>(xSet)
                 if (axisModel == AxisModel.TRI_AXIS) {
                     dataSets += LineDataSet(yEntries, "Y").apply {
                         color = Color.parseColor("#9AE6B4")
