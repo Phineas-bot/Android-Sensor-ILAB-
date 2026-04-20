@@ -6,7 +6,7 @@ enum class SensorType(
 ) {
     ACCELEROMETER(
         "Accelerometer",
-        SensorCapability("m/s^2", AxisModel.TRI_AXIS, ValueDisplayFormat.XYZ)
+        SensorCapability("m/s²", AxisModel.TRI_AXIS, ValueDisplayFormat.XYZ)
     ),
     GYROSCOPE(
         "Gyroscope",
@@ -14,7 +14,7 @@ enum class SensorType(
     ),
     MAGNETOMETER(
         "Magnetometer",
-        SensorCapability("uT", AxisModel.TRI_AXIS, ValueDisplayFormat.XYZ)
+        SensorCapability("µT", AxisModel.TRI_AXIS, ValueDisplayFormat.XYZ)
     ),
     LIGHT(
         "Light",
