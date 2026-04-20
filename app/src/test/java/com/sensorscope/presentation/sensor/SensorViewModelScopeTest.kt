@@ -3,6 +3,7 @@ package com.sensorscope.presentation.sensor
 import com.sensorscope.core.model.SensorData
 import com.sensorscope.core.model.SamplingMode
 import com.sensorscope.core.model.SensorType
+import com.sensorscope.domain.analytics.SensorAnalyticsEngine
 import com.sensorscope.domain.usecase.ManageSensorSessionUseCase
 import com.sensorscope.domain.usecase.ObserveSensorDataUseCase
 import kotlinx.coroutines.Dispatchers
@@ -69,7 +70,7 @@ class SensorViewModelScopeTest {
             }
         )
 
-        val viewModel = SensorViewModel(observeUseCase, manageUseCase)
+        val viewModel = SensorViewModel(observeUseCase, manageUseCase, SensorAnalyticsEngine())
         viewModel.setCollectionScope(SensorCollectionScope.Detail(SensorType.ACCELEROMETER))
         viewModel.startListening()
 

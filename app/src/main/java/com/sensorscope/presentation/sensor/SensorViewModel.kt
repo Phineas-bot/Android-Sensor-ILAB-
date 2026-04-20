@@ -6,6 +6,8 @@ import com.sensorscope.core.model.SamplingMode
 import com.sensorscope.core.model.SensorData
 import com.sensorscope.core.model.SensorType
 import com.sensorscope.core.util.SensorRingBuffer
+import com.sensorscope.domain.analytics.SensorAnalyticsEngine
+import com.sensorscope.domain.lab.LabId
 import com.sensorscope.domain.lab.SensorLab
 import com.sensorscope.domain.lab.SensorLabEngine
 import com.sensorscope.domain.usecase.ManageSensorSessionUseCase
@@ -23,145 +25,86 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class SensorViewModel @Inject constructor(
     private val observeSensorDataUseCase: ObserveSensorDataUseCase,
-    private val manageSensorSessionUseCase: ManageSensorSessionUseCase
+    private val manageSensorSessionUseCase: ManageSensorSessionUseCase,
+    private val analyticsEngine: SensorAnalyticsEngine
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
-        SensorUiState(availableSensors = manageSensorSessionUseCase.availableSensors())
+        SensorUiState(
+            availableSensors = manageSensorSessionUseCase.availableSensors()
+        )
     )
     val uiState: StateFlow<SensorUiState> = _uiState.asStateFlow()
-
-    private val _labs = MutableStateFlow<List<SensorLab>>(emptyList())
-    val labs: StateFlow<List<SensorLab>> = _labs.asStateFlow()
 
     private val chartBuffers = SensorType.entries.associateWith { SensorRingBuffer(CHART_BUFFER_CAPACITY) }
     private val activeJobs = mutableMapOf<SensorType, Job>()
     private val labEngine = SensorLabEngine()
+    private val labTemplates = labEngine.initialLabs()
+    private val labTemplateMap = labTemplates.associateBy { it.id }
+    private val _labs = MutableStateFlow(labTemplates)
+    val labs: StateFlow<List<SensorLab>> = _labs.asStateFlow()
     private var collectionScope: SensorCollectionScope = SensorCollectionScope.Dashboard
 
     companion object {
         private const val CHART_BUFFER_CAPACITY = 180
     }
 
-    // ── Scope management ──────────────────────────────────────────────────────
-
-    /**
-     * Called when navigating to a screen. Immediately reconciles which sensors
-     * are collecting so charts and labs start updating without a separate button press.
-     */
-    fun setCollectionScope(scope: SensorCollectionScope) {
-        collectionScope = scope
-        reconcileCollectors()
-    }
-
-    // ── Per-sensor toggle (Dashboard) ─────────────────────────────────────────
-
-    /**
-     * Toggle an individual sensor on/off on the Dashboard.
-     * Immediately starts or stops collection and, if a session is recording,
-     * immediately starts or stops logging for that sensor.
-     */
-    fun toggleSensor(type: SensorType) {
-        val current = _uiState.value.enabledSensors
-        val updated = if (type in current) current - type else current + type
-        _uiState.update { it.copy(enabledSensors = updated) }
-        if (collectionScope is SensorCollectionScope.Dashboard) {
-            reconcileCollectors()
-        }
-    }
-
-    // ── Recording session ─────────────────────────────────────────────────────
-
-    /**
-     * Start a DB recording session. All currently-active collectors are restarted
-     * so they begin logging to the new session.
-     */
     fun startListening() {
-        if (_uiState.value.isRecording) return
+        if (_uiState.value.isListening) return
+
         viewModelScope.launch {
             val sessionId = manageSensorSessionUseCase.startSession(
                 name = "Session ${System.currentTimeMillis()}"
             )
-            _uiState.update { it.copy(isRecording = true, currentSessionId = sessionId, errorMessage = null) }
-            // Restart active collectors so they pick up the new sessionId and start logging.
-            restartActiveCollectors(sessionId)
+            _uiState.update { it.copy(isListening = true, currentSessionId = sessionId, errorMessage = null) }
+            reconcileCollectors(sessionId)
         }
     }
 
-    /**
-     * Stop the current DB recording session. Collectors continue running
-     * (charts keep updating) but stop logging to the DB.
-     */
     fun stopListening() {
-        val sessionId = _uiState.value.currentSessionId
-        if (sessionId != null) {
-            viewModelScope.launch { manageSensorSessionUseCase.stopSession(sessionId) }
-        }
-        _uiState.update { it.copy(isRecording = false, currentSessionId = null) }
-        // Restart collectors without a session (chart-only mode).
-        restartActiveCollectors(sessionId = null)
-    }
-
-    // ── Sampling rate ─────────────────────────────────────────────────────────
-
-    fun setSamplingRateFast(enabled: Boolean) {
-        val targetMode = if (enabled) SamplingMode.FAST else SamplingMode.NORMAL
-        if (_uiState.value.samplingMode == targetMode) return
-        _uiState.update { it.copy(samplingMode = targetMode, errorMessage = null) }
-        restartActiveCollectors(_uiState.value.currentSessionId)
-    }
-
-    // ── Internal helpers ──────────────────────────────────────────────────────
-
-    /** Determine which sensors should be active for the current scope. */
-    private fun requiredSensors(): Set<SensorType> = when (collectionScope) {
-        SensorCollectionScope.Dashboard -> _uiState.value.enabledSensors
-        is SensorCollectionScope.Detail -> setOf((collectionScope as SensorCollectionScope.Detail).sensorType)
-        SensorCollectionScope.Labs -> SensorCollectionScope.LAB_SENSORS
-    }
-
-    /**
-     * Start sensors that should be running but aren't, and stop sensors that
-     * should not be running. Does NOT restart already-running sensors.
-     */
-    private fun reconcileCollectors() {
-        val required = requiredSensors()
-        val sessionId = if (_uiState.value.isRecording) _uiState.value.currentSessionId else null
-
-        (activeJobs.keys - required).forEach { type ->
-            activeJobs.remove(type)?.cancel()
-        }
-        (required - activeJobs.keys).forEach { type ->
-            startSensorCollection(type, sessionId)
-        }
-    }
-
-    /**
-     * Cancel every active collector and restart it — used when the recording
-     * session changes (start/stop recording, or sampling-rate change).
-     */
-    private fun restartActiveCollectors(sessionId: Long?) {
-        val required = requiredSensors()
         activeJobs.values.forEach { it.cancel() }
         activeJobs.clear()
-        required.forEach { type -> startSensorCollection(type, sessionId) }
+
+        val sessionId = _uiState.value.currentSessionId
+        if (sessionId != null) {
+            viewModelScope.launch {
+                manageSensorSessionUseCase.stopSession(sessionId)
+            }
+        }
+        _uiState.update { it.copy(isListening = false, currentSessionId = null) }
     }
 
-    /**
-     * Launch a coroutine that observes one sensor. If [sessionId] is non-null,
-     * each reading is also written to the database.
-     */
-    private fun startSensorCollection(type: SensorType, sessionId: Long?) {
+    private fun startSensorCollection(type: SensorType, sessionId: Long) {
         if (_uiState.value.availableSensors[type] != true) return
         val samplingMode = _uiState.value.samplingMode
 
         activeJobs[type] = viewModelScope.launch {
             observeSensorDataUseCase(type, samplingMode).collectLatest { data ->
                 onSensorData(type, data)
-                if (sessionId != null) {
-                    manageSensorSessionUseCase.log(sessionId, type, data)
-                }
+                manageSensorSessionUseCase.log(sessionId, type, data)
             }
+        }
+    }
+
+    fun setCollectionScope(scope: SensorCollectionScope) {
+        collectionScope = scope
+        if (_uiState.value.isListening) {
+            val sessionId = _uiState.value.currentSessionId ?: return
+            reconcileCollectors(sessionId)
+        }
+    }
+
+    private fun reconcileCollectors(sessionId: Long) {
+        val requiredSensors = collectionScope.requiredSensors()
+
+        val sensorsToStop = activeJobs.keys - requiredSensors
+        sensorsToStop.forEach { sensorType ->
+            activeJobs.remove(sensorType)?.cancel()
+        }
+
+        val sensorsToStart = requiredSensors - activeJobs.keys
+        sensorsToStart.forEach { sensorType ->
+            startSensorCollection(sensorType, sessionId)
         }
     }
 
@@ -169,44 +112,68 @@ class SensorViewModel @Inject constructor(
         chartBuffers[type]?.add(data)
         _uiState.update { current ->
             val history = chartBuffers[type]?.toList().orEmpty()
+            val nextSeries = current.chartSeries + (type to history)
+            val nextTrends = nextSeries.mapNotNull { (sensor, series) ->
+                analyticsEngine.calculateTrendSummary(sensor, series)?.let { sensor to it }
+            }.toMap()
+            val nextInsights = analyticsEngine.crossSensorInsights(nextSeries)
+
             current.copy(
                 latestValues = current.latestValues + (type to data),
-                chartSeries = current.chartSeries + (type to history)
+                chartSeries = nextSeries,
+                trendSummaries = nextTrends,
+                crossSensorInsights = nextInsights
             )
         }
+
         updateLabs(type, data)
     }
 
     private fun updateLabs(type: SensorType, data: SensorData) {
         val existing = _labs.value.associateBy { it.id }.toMutableMap()
+        val updates = labEngine.evaluate(type, data)
 
-        when (type) {
-            SensorType.ACCELEROMETER -> {
-                existing[labEngine.shakeChallenge(data).id] = labEngine.shakeChallenge(data)
-                existing[labEngine.freeFall(data).id] = labEngine.freeFall(data)
-                existing[labEngine.tiltFlat(data).id] = labEngine.tiltFlat(data)
+        updates.forEach { updatedLab ->
+            val previous = existing[updatedLab.id]
+            existing[updatedLab.id] = when {
+                previous?.isCompleted == true -> updatedLab.copy(
+                    isCompleted = true,
+                    progressText = previous.progressText
+                )
+                updatedLab.isCompleted -> updatedLab.copy(progressText = "Completed. ${updatedLab.progressText}")
+                else -> updatedLab
             }
-            SensorType.MAGNETOMETER -> {
-                existing[labEngine.magneticNorth(data).id] = labEngine.magneticNorth(data)
-            }
-            SensorType.GYROSCOPE -> {
-                existing[labEngine.spinFast(data).id] = labEngine.spinFast(data)
-            }
-            SensorType.LIGHT -> {
-                existing[labEngine.brightLight(data).id] = labEngine.brightLight(data)
-            }
-            else -> Unit
         }
-        _labs.value = existing.values.toList()
+
+        _labs.value = labTemplates.map { template -> existing[template.id] ?: template }
+    }
+
+    fun relaunchLab(id: LabId) {
+        labEngine.onRelaunch(id)
+        val template = labTemplateMap[id] ?: return
+        _labs.update { current ->
+            current.map { lab ->
+                if (lab.id == id) template else lab
+            }
+        }
+    }
+
+    fun setSamplingRateFast(enabled: Boolean) {
+        val targetMode = if (enabled) SamplingMode.FAST else SamplingMode.NORMAL
+        if (_uiState.value.samplingMode == targetMode) return
+
+        _uiState.update { it.copy(samplingMode = targetMode, errorMessage = null) }
+
+        val sessionId = _uiState.value.currentSessionId ?: return
+        if (_uiState.value.isListening) {
+            activeJobs.values.forEach { it.cancel() }
+            activeJobs.clear()
+            reconcileCollectors(sessionId)
+        }
     }
 
     override fun onCleared() {
         super.onCleared()
-        activeJobs.values.forEach { it.cancel() }
-        activeJobs.clear()
-        val sessionId = _uiState.value.currentSessionId
-        if (sessionId != null) {
-            viewModelScope.launch { manageSensorSessionUseCase.stopSession(sessionId) }
-        }
+        stopListening()
     }
 }

@@ -1,6 +1,7 @@
 package com.sensorscope.domain.lab
 
 import com.sensorscope.core.model.SensorData
+import com.sensorscope.core.model.SensorType
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
@@ -8,132 +9,267 @@ import kotlin.math.sqrt
 enum class LabId {
     SHAKE_CHALLENGE,
     MAGNETIC_NORTH,
-    FREE_FALL,
-    TILT_FLAT,
-    SPIN_FAST,
-    BRIGHT_LIGHT
+    GYRO_STABILITY,
+    BRIGHT_LIGHT_DETECTION,
+    PROXIMITY_TRIGGER,
+    PRESSURE_SHIFT,
+    AUDIO_QUIET_ZONE,
+    AUDIO_PEAK_EVENT,
+    BLUETOOTH_PROXIMITY,
+    CAMERA_CAPABILITY_CHECK
 }
 
 data class SensorLab(
     val id: LabId,
-    val emoji: String,
     val title: String,
     val description: String,
+    val sourceSensor: SensorType,
     val isCompleted: Boolean = false,
-    val progressText: String = "",
-    /** 0.0 – 1.0 fraction used to draw the progress bar. */
-    val progress: Float = 0f
+    val progressText: String = ""
 )
 
 class SensorLabEngine {
+    private val shakeThreshold = 15f
+    private val northThresholdDegrees = 20f
+    private val gyroStableThreshold = 0.7f
+    private val brightLuxThreshold = 300f
+    private val proximityNearThreshold = 3f
+    private val pressureShiftThreshold = 3f
+    private val quietDbfsThreshold = -35f
+    private val peakDbfsThreshold = -12f
+    private val bluetoothNearThreshold = -60f
+    private val cameraCapabilityThreshold = 35f
 
-    // ── Accelerometer labs ────────────────────────────────────────────────────
+    private var pressureBaseline: Float? = null
 
-    fun shakeChallenge(data: SensorData): SensorLab {
-        val threshold = 15f
-        val magnitude = magnitude3(data)
-        val progress = (magnitude / threshold).coerceIn(0f, 1f)
+    fun initialLabs(): List<SensorLab> = listOf(
+        SensorLab(
+            id = LabId.SHAKE_CHALLENGE,
+            title = "Shake phone to reach high acceleration",
+            description = "Generate acceleration magnitude >= ${shakeThreshold} m/s^2",
+            sourceSensor = SensorType.ACCELEROMETER,
+            progressText = "Awaiting accelerometer input"
+        ),
+        SensorLab(
+            id = LabId.MAGNETIC_NORTH,
+            title = "Detect magnetic north",
+            description = "Keep heading near 0° (+/- ${northThresholdDegrees.toInt()}°)",
+            sourceSensor = SensorType.MAGNETOMETER,
+            progressText = "Awaiting magnetometer input"
+        ),
+        SensorLab(
+            id = LabId.GYRO_STABILITY,
+            title = "Gyroscope stability check",
+            description = "Keep rotational motion below ${gyroStableThreshold} rad/s",
+            sourceSensor = SensorType.GYROSCOPE,
+            progressText = "Awaiting gyroscope input"
+        ),
+        SensorLab(
+            id = LabId.BRIGHT_LIGHT_DETECTION,
+            title = "Bright-light detection",
+            description = "Reach at least ${brightLuxThreshold.toInt()} lux",
+            sourceSensor = SensorType.LIGHT,
+            progressText = "Awaiting light sensor input"
+        ),
+        SensorLab(
+            id = LabId.PROXIMITY_TRIGGER,
+            title = "Near-object detection",
+            description = "Bring an object within ${proximityNearThreshold} cm",
+            sourceSensor = SensorType.PROXIMITY,
+            progressText = "Awaiting proximity input"
+        ),
+        SensorLab(
+            id = LabId.PRESSURE_SHIFT,
+            title = "Pressure shift challenge",
+            description = "Change pressure by at least ${pressureShiftThreshold} hPa from baseline",
+            sourceSensor = SensorType.PRESSURE,
+            progressText = "Awaiting pressure baseline"
+        ),
+        SensorLab(
+            id = LabId.AUDIO_QUIET_ZONE,
+            title = "Quiet-zone detection",
+            description = "Reduce audio level to <= ${quietDbfsThreshold.toInt()} dBFS",
+            sourceSensor = SensorType.AUDIO_LEVEL,
+            progressText = "Awaiting microphone input"
+        ),
+        SensorLab(
+            id = LabId.AUDIO_PEAK_EVENT,
+            title = "Audio peak event",
+            description = "Reach audio level >= ${peakDbfsThreshold.toInt()} dBFS",
+            sourceSensor = SensorType.AUDIO_LEVEL,
+            progressText = "Awaiting microphone input"
+        ),
+        SensorLab(
+            id = LabId.BLUETOOTH_PROXIMITY,
+            title = "Bluetooth proximity",
+            description = "Reach BLE signal stronger than ${bluetoothNearThreshold.toInt()} dBm",
+            sourceSensor = SensorType.BLUETOOTH_SIGNAL,
+            progressText = "Awaiting Bluetooth scan input"
+        ),
+        SensorLab(
+            id = LabId.CAMERA_CAPABILITY_CHECK,
+            title = "Camera capability check",
+            description = "Reach camera metadata score >= ${cameraCapabilityThreshold.toInt()}",
+            sourceSensor = SensorType.CAMERA_METADATA,
+            progressText = "Awaiting camera metadata input"
+        )
+    )
+
+    fun evaluate(sensorType: SensorType, data: SensorData): List<SensorLab> {
+        return when (sensorType) {
+            SensorType.ACCELEROMETER -> listOf(updateShakeLab(data))
+            SensorType.MAGNETOMETER -> listOf(updateMagneticNorthLab(data))
+            SensorType.GYROSCOPE -> listOf(updateGyroStabilityLab(data))
+            SensorType.LIGHT -> listOf(updateBrightLightLab(data))
+            SensorType.PROXIMITY -> listOf(updateProximityLab(data))
+            SensorType.PRESSURE -> listOf(updatePressureShiftLab(data))
+            SensorType.AUDIO_LEVEL -> listOf(updateAudioQuietLab(data), updateAudioPeakLab(data))
+            SensorType.BLUETOOTH_SIGNAL -> listOf(updateBluetoothProximityLab(data))
+            SensorType.CAMERA_METADATA -> listOf(updateCameraCapabilityLab(data))
+        }
+    }
+
+    fun onRelaunch(id: LabId) {
+        if (id == LabId.PRESSURE_SHIFT) {
+            pressureBaseline = null
+        }
+    }
+
+    fun updateShakeLab(accelerometer: SensorData): SensorLab {
+        val magnitude = sqrt(
+            accelerometer.x * accelerometer.x +
+                accelerometer.y * accelerometer.y +
+                accelerometer.z * accelerometer.z
+        )
+        val completed = magnitude >= shakeThreshold
         return SensorLab(
             id = LabId.SHAKE_CHALLENGE,
-            emoji = "📳",
-            title = "Shake Challenge",
-            description = "Shake the device hard enough to reach ${threshold.toInt()} m/s² total acceleration.",
-            isCompleted = magnitude >= threshold,
-            progressText = "Magnitude: ${"%.2f".format(magnitude)} m/s²  (target ≥ ${threshold.toInt()})",
-            progress = progress
-        )
-    }
-
-    fun freeFall(data: SensorData): SensorLab {
-        val threshold = 2f       // m/s² — near-weightless
-        val magnitude = magnitude3(data)
-        // Progress goes up as magnitude goes DOWN toward 0
-        val progress = (1f - (magnitude / 9.81f)).coerceIn(0f, 1f)
-        return SensorLab(
-            id = LabId.FREE_FALL,
-            emoji = "🪂",
-            title = "Free Fall",
-            description = "Create near-weightlessness: toss the device gently upward or use a drop test to get acceleration below ${threshold} m/s².",
-            isCompleted = magnitude < threshold,
-            progressText = "Magnitude: ${"%.2f".format(magnitude)} m/s²  (target < $threshold)",
-            progress = progress
-        )
-    }
-
-    fun tiltFlat(data: SensorData): SensorLab {
-        // Flat = Z ≈ 9.81, X ≈ 0, Y ≈ 0
-        val xDev = abs(data.x)
-        val yDev = abs(data.y)
-        val zDev = abs(abs(data.z) - 9.81f)
-        val totalDev = xDev + yDev + zDev
-        val completed = xDev < 0.4f && yDev < 0.4f && zDev < 0.3f
-        val progress = (1f - (totalDev / 5f)).coerceIn(0f, 1f)
-        return SensorLab(
-            id = LabId.TILT_FLAT,
-            emoji = "⚖️",
-            title = "Spirit Level",
-            description = "Hold the device perfectly flat on a surface (Z ≈ 9.81 m/s², X ≈ 0, Y ≈ 0).",
+            title = "Shake phone to reach high acceleration",
+            description = "Generate acceleration magnitude >= ${shakeThreshold} m/s^2",
+            sourceSensor = SensorType.ACCELEROMETER,
             isCompleted = completed,
-            progressText = "X: ${"%.2f".format(data.x)}  Y: ${"%.2f".format(data.y)}  Z: ${"%.2f".format(data.z)} m/s²",
-            progress = progress
+            progressText = "Current magnitude: ${"%.2f".format(magnitude)}"
         )
     }
 
-    // ── Magnetometer labs ─────────────────────────────────────────────────────
-
-    fun magneticNorth(data: SensorData): SensorLab {
-        val threshold = 20f
-        val heading = Math.toDegrees(atan2(data.y.toDouble(), data.x.toDouble())).toFloat()
+    fun updateMagneticNorthLab(magnetometer: SensorData): SensorLab {
+        val heading = Math.toDegrees(atan2(magnetometer.y.toDouble(), magnetometer.x.toDouble())).toFloat()
         val normalized = if (heading < 0) heading + 360f else heading
-        val deviation = if (normalized > 180f) 360f - normalized else normalized
-        val completed = deviation <= threshold
-        val progress = (1f - (deviation / 180f)).coerceIn(0f, 1f)
+        val completed = normalized <= northThresholdDegrees || normalized >= (360f - northThresholdDegrees)
+
         return SensorLab(
             id = LabId.MAGNETIC_NORTH,
-            emoji = "🧭",
-            title = "Magnetic North Hunt",
-            description = "Point the device toward magnetic north — keep heading within ±${threshold.toInt()}° of 0°.",
+            title = "Detect magnetic north",
+            description = "Keep heading near 0° (+/- ${northThresholdDegrees.toInt()}°)",
+            sourceSensor = SensorType.MAGNETOMETER,
             isCompleted = completed,
-            progressText = "Heading: ${"%.1f".format(normalized)}°  (deviation: ${"%.1f".format(deviation)}°)",
-            progress = progress
+            progressText = "Heading: ${"%.1f".format(abs(normalized))}°"
         )
     }
 
-    // ── Gyroscope labs ────────────────────────────────────────────────────────
-
-    fun spinFast(data: SensorData): SensorLab {
-        val threshold = 5f   // rad/s
-        val magnitude = magnitude3(data)
-        val progress = (magnitude / threshold).coerceIn(0f, 1f)
+    private fun updateGyroStabilityLab(gyroscope: SensorData): SensorLab {
+        val magnitude = sqrt(
+            gyroscope.x * gyroscope.x +
+                gyroscope.y * gyroscope.y +
+                gyroscope.z * gyroscope.z
+        )
+        val completed = magnitude <= gyroStableThreshold
         return SensorLab(
-            id = LabId.SPIN_FAST,
-            emoji = "🌀",
-            title = "Spin Cycle",
-            description = "Spin the device fast enough to reach ${threshold.toInt()} rad/s rotational speed.",
-            isCompleted = magnitude >= threshold,
-            progressText = "Rotation: ${"%.2f".format(magnitude)} rad/s  (target ≥ $threshold)",
-            progress = progress
+            id = LabId.GYRO_STABILITY,
+            title = "Gyroscope stability check",
+            description = "Keep rotational motion below ${gyroStableThreshold} rad/s",
+            sourceSensor = SensorType.GYROSCOPE,
+            isCompleted = completed,
+            progressText = "Current rotation magnitude: ${"%.2f".format(magnitude)}"
         )
     }
 
-    // ── Light labs ────────────────────────────────────────────────────────────
-
-    fun brightLight(data: SensorData): SensorLab {
-        val threshold = 500f   // lux
-        val lux = data.x
-        val progress = (lux / threshold).coerceIn(0f, 1f)
+    private fun updateBrightLightLab(light: SensorData): SensorLab {
+        val completed = light.x >= brightLuxThreshold
         return SensorLab(
-            id = LabId.BRIGHT_LIGHT,
-            emoji = "☀️",
-            title = "Bright Spot",
-            description = "Aim the light sensor at a bright source to exceed ${threshold.toInt()} lux.",
-            isCompleted = lux >= threshold,
-            progressText = "Light: ${"%.1f".format(lux)} lux  (target ≥ ${threshold.toInt()})",
-            progress = progress
+            id = LabId.BRIGHT_LIGHT_DETECTION,
+            title = "Bright-light detection",
+            description = "Reach at least ${brightLuxThreshold.toInt()} lux",
+            sourceSensor = SensorType.LIGHT,
+            isCompleted = completed,
+            progressText = "Current light: ${"%.1f".format(light.x)} lux"
         )
     }
 
-    // ── Helper ────────────────────────────────────────────────────────────────
+    private fun updateProximityLab(proximity: SensorData): SensorLab {
+        val completed = proximity.x <= proximityNearThreshold
+        return SensorLab(
+            id = LabId.PROXIMITY_TRIGGER,
+            title = "Near-object detection",
+            description = "Bring an object within ${proximityNearThreshold} cm",
+            sourceSensor = SensorType.PROXIMITY,
+            isCompleted = completed,
+            progressText = "Current distance: ${"%.2f".format(proximity.x)} cm"
+        )
+    }
 
-    private fun magnitude3(d: SensorData) = sqrt(d.x * d.x + d.y * d.y + d.z * d.z)
+    private fun updatePressureShiftLab(pressure: SensorData): SensorLab {
+        if (pressureBaseline == null) {
+            pressureBaseline = pressure.x
+        }
+        val baseline = pressureBaseline ?: pressure.x
+        val delta = abs(pressure.x - baseline)
+        val completed = delta >= pressureShiftThreshold
+        return SensorLab(
+            id = LabId.PRESSURE_SHIFT,
+            title = "Pressure shift challenge",
+            description = "Change pressure by at least ${pressureShiftThreshold} hPa from baseline",
+            sourceSensor = SensorType.PRESSURE,
+            isCompleted = completed,
+            progressText = "Baseline ${"%.1f".format(baseline)} hPa | current ${"%.1f".format(pressure.x)} hPa | delta ${"%.2f".format(delta)}"
+        )
+    }
+
+    private fun updateAudioQuietLab(audio: SensorData): SensorLab {
+        val completed = audio.x <= quietDbfsThreshold
+        return SensorLab(
+            id = LabId.AUDIO_QUIET_ZONE,
+            title = "Quiet-zone detection",
+            description = "Reduce audio level to <= ${quietDbfsThreshold.toInt()} dBFS",
+            sourceSensor = SensorType.AUDIO_LEVEL,
+            isCompleted = completed,
+            progressText = "Current audio: ${"%.1f".format(audio.x)} dBFS"
+        )
+    }
+
+    private fun updateAudioPeakLab(audio: SensorData): SensorLab {
+        val completed = audio.x >= peakDbfsThreshold
+        return SensorLab(
+            id = LabId.AUDIO_PEAK_EVENT,
+            title = "Audio peak event",
+            description = "Reach audio level >= ${peakDbfsThreshold.toInt()} dBFS",
+            sourceSensor = SensorType.AUDIO_LEVEL,
+            isCompleted = completed,
+            progressText = "Current audio: ${"%.1f".format(audio.x)} dBFS"
+        )
+    }
+
+    private fun updateBluetoothProximityLab(bluetooth: SensorData): SensorLab {
+        val completed = bluetooth.x >= bluetoothNearThreshold
+        return SensorLab(
+            id = LabId.BLUETOOTH_PROXIMITY,
+            title = "Bluetooth proximity",
+            description = "Reach BLE signal stronger than ${bluetoothNearThreshold.toInt()} dBm",
+            sourceSensor = SensorType.BLUETOOTH_SIGNAL,
+            isCompleted = completed,
+            progressText = "Current BLE signal: ${"%.1f".format(bluetooth.x)} dBm"
+        )
+    }
+
+    private fun updateCameraCapabilityLab(cameraMetadata: SensorData): SensorLab {
+        val completed = cameraMetadata.x >= cameraCapabilityThreshold
+        return SensorLab(
+            id = LabId.CAMERA_CAPABILITY_CHECK,
+            title = "Camera capability check",
+            description = "Reach camera metadata score >= ${cameraCapabilityThreshold.toInt()}",
+            sourceSensor = SensorType.CAMERA_METADATA,
+            isCompleted = completed,
+            progressText = "Current metadata score: ${"%.1f".format(cameraMetadata.x)}"
+        )
+    }
 }

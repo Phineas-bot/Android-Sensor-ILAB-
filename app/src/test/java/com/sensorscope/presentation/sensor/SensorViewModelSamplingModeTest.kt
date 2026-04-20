@@ -3,6 +3,7 @@ package com.sensorscope.presentation.sensor
 import com.sensorscope.core.model.SamplingMode
 import com.sensorscope.core.model.SensorData
 import com.sensorscope.core.model.SensorType
+import com.sensorscope.domain.analytics.SensorAnalyticsEngine
 import com.sensorscope.domain.model.SensorSessionSummary
 import com.sensorscope.domain.repository.LoggedReading
 import com.sensorscope.domain.repository.SensorRepository
@@ -45,7 +46,8 @@ class SensorViewModelSamplingModeTest {
         val repository = FakeSensorRepository()
         val viewModel = SensorViewModel(
             observeSensorDataUseCase = ObserveSensorDataUseCase(repository),
-            manageSensorSessionUseCase = ManageSensorSessionUseCase(repository)
+            manageSensorSessionUseCase = ManageSensorSessionUseCase(repository),
+            analyticsEngine = SensorAnalyticsEngine()
         )
 
         viewModel.setCollectionScope(SensorCollectionScope.Detail(SensorType.ACCELEROMETER))
@@ -66,7 +68,8 @@ class SensorViewModelSamplingModeTest {
         val repository = FakeSensorRepository()
         val viewModel = SensorViewModel(
             observeSensorDataUseCase = ObserveSensorDataUseCase(repository),
-            manageSensorSessionUseCase = ManageSensorSessionUseCase(repository)
+            manageSensorSessionUseCase = ManageSensorSessionUseCase(repository),
+            analyticsEngine = SensorAnalyticsEngine()
         )
 
         viewModel.setCollectionScope(SensorCollectionScope.Detail(SensorType.GYROSCOPE))
@@ -87,7 +90,8 @@ class SensorViewModelSamplingModeTest {
         val repository = FakeSensorRepository()
         val viewModel = SensorViewModel(
             observeSensorDataUseCase = ObserveSensorDataUseCase(repository),
-            manageSensorSessionUseCase = ManageSensorSessionUseCase(repository)
+            manageSensorSessionUseCase = ManageSensorSessionUseCase(repository),
+            analyticsEngine = SensorAnalyticsEngine()
         )
 
         viewModel.startListening()

@@ -101,6 +101,27 @@ fun SensorDetailsScreen(
                     isEnabled = isEnabled,
                     onToggle = { viewModel.toggleSensor(sensorType) }
                 )
+
+                state.trendSummaries[sensorType]?.let { trend ->
+                    Text(
+                        text = "Trend: ${trend.direction}  avg ${"%.2f".format(trend.average)}  min ${"%.2f".format(trend.minimum)}  max ${"%.2f".format(trend.maximum)}",
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            }
+        }
+
+        if (state.crossSensorInsights.isNotEmpty()) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Cross-Sensor Insights")
+                    state.crossSensorInsights.forEach { insight ->
+                        Text("- $insight", modifier = Modifier.padding(top = 4.dp))
+                    }
+                }
             }
         }
 

@@ -9,9 +9,6 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -20,6 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,29 +39,48 @@ import com.sensorscope.presentation.logs.LogsScreen
 import com.sensorscope.presentation.logs.LogsViewModel
 import com.sensorscope.presentation.navigation.Destination
 import com.sensorscope.presentation.onboarding.OnboardingScreen
-import com.sensorscope.presentation.onboarding.OnboardingViewModel
 import com.sensorscope.presentation.sensor.SensorViewModel
-import com.sensorscope.ui.theme.Slate900
 import com.sensorscope.ui.theme.SensorScopeTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private val permissionLauncher = registerForActivityResult(
+    private val prefs by lazy {
+        getSharedPreferences("sensor_scope_preferences", MODE_PRIVATE)
+    }
+
+    private val storagePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
+    ) { }
+
+    private val runtimePermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
     ) { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         requestStoragePermissionIfRequired()
+        requestSensorPermissionsIfRequired()
 
         setContent {
             SensorScopeTheme {
-                SensorScopeApp(onShareUri = { uri -> shareFile(uri) })
+                SensorScopeApp(
+                    onShareUri = { uri -> shareFile(uri) },
+                    shouldShowOnboarding = shouldShowOnboarding(),
+                    onCompleteOnboarding = { markOnboardingSeen() }
+                )
             }
         }
+    }
+
+    private fun shouldShowOnboarding(): Boolean {
+        return !prefs.getBoolean(KEY_ONBOARDING_DONE, false)
+    }
+
+    private fun markOnboardingSeen() {
+        prefs.edit().putBoolean(KEY_ONBOARDING_DONE, true).apply()
     }
 
     private fun requestStoragePermissionIfRequired() {
@@ -70,7 +89,29 @@ class MainActivity : AppCompatActivity() {
         val permission = Manifest.permission.WRITE_EXTERNAL_STORAGE
         val granted = ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
         if (!granted) {
-            permissionLauncher.launch(permission)
+            storagePermissionLauncher.launch(permission)
+        }
+    }
+
+    private fun requestSensorPermissionsIfRequired() {
+        val required = mutableListOf(
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.CAMERA
+        )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            required += Manifest.permission.BLUETOOTH_SCAN
+            required += Manifest.permission.BLUETOOTH_CONNECT
+        } else {
+            required += Manifest.permission.ACCESS_FINE_LOCATION
+        }
+
+        val missing = required.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (missing.isNotEmpty()) {
+            runtimePermissionsLauncher.launch(missing.toTypedArray())
         }
     }
 
@@ -82,36 +123,22 @@ class MainActivity : AppCompatActivity() {
         }
         startActivity(Intent.createChooser(intent, "Share CSV"))
     }
-}
 
-@Composable
-private fun SensorScopeApp(onShareUri: (Uri) -> Unit) {
-    val onboardingViewModel: OnboardingViewModel = hiltViewModel()
-    val isOnboardingComplete by onboardingViewModel.isOnboardingComplete.collectAsStateWithLifecycle()
-
-    when (isOnboardingComplete) {
-        // Still reading DataStore — show blank dark screen for the brief moment
-        null -> Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Slate900)
-        )
-
-        // Onboarding not yet completed — show the onboarding flow
-        false -> OnboardingScreen(
-            onComplete = { onboardingViewModel.markComplete() }
-        )
-
-        // Onboarding done — show the main app
-        else -> MainApp(onShareUri = onShareUri)
+    companion object {
+        private const val KEY_ONBOARDING_DONE = "key_onboarding_done"
     }
 }
 
 @Composable
-private fun MainApp(onShareUri: (Uri) -> Unit) {
+private fun SensorScopeApp(
+    onShareUri: (Uri) -> Unit,
+    shouldShowOnboarding: Boolean,
+    onCompleteOnboarding: () -> Unit
+) {
     val navController = rememberNavController()
     val sensorViewModel: SensorViewModel = hiltViewModel()
     val logsViewModel: LogsViewModel = hiltViewModel()
+    var showOnboarding by rememberSaveable { mutableStateOf(shouldShowOnboarding) }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -121,6 +148,16 @@ private fun MainApp(onShareUri: (Uri) -> Unit) {
         val uri = exportedUri?.let(Uri::parse) ?: return@LaunchedEffect
         onShareUri(uri)
         logsViewModel.clearExportState()
+    }
+
+    if (showOnboarding) {
+        OnboardingScreen(
+            onContinue = {
+                showOnboarding = false
+                onCompleteOnboarding()
+            }
+        )
+        return
     }
 
     Scaffold(
@@ -172,9 +209,7 @@ private fun MainApp(onShareUri: (Uri) -> Unit) {
                 arguments = listOf(navArgument("sensorType") { type = NavType.StringType })
             ) { backStackEntry ->
                 val sensorTypeName = backStackEntry.arguments?.getString("sensorType")
-                val sensorType = runCatching {
-                    SensorType.valueOf(sensorTypeName ?: "")
-                }.getOrDefault(SensorType.ACCELEROMETER)
+                val sensorType = runCatching { SensorType.valueOf(sensorTypeName ?: "") }.getOrDefault(SensorType.ACCELEROMETER)
                 SensorDetailsScreen(
                     sensorType = sensorType,
                     viewModel = sensorViewModel

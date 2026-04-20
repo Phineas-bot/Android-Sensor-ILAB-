@@ -27,6 +27,18 @@ enum class SensorType(
     PRESSURE(
         "Pressure",
         SensorCapability("hPa", AxisModel.SINGLE_VALUE, ValueDisplayFormat.VALUE_WITH_UNIT)
+    ),
+    AUDIO_LEVEL(
+        "Audio Level",
+        SensorCapability("dBFS", AxisModel.SINGLE_VALUE, ValueDisplayFormat.VALUE_WITH_UNIT)
+    ),
+    CAMERA_METADATA(
+        "Camera Metadata",
+        SensorCapability("score", AxisModel.SINGLE_VALUE, ValueDisplayFormat.VALUE_WITH_UNIT)
+    ),
+    BLUETOOTH_SIGNAL(
+        "Bluetooth Signal",
+        SensorCapability("dBm", AxisModel.SINGLE_VALUE, ValueDisplayFormat.VALUE_WITH_UNIT)
     );
 
     val unit: String
